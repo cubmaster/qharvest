@@ -1,0 +1,44 @@
+.graph-container {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .node-label {
+    font-size: 12px;
+    text-anchor: middle;
+  }
+  
+  .port-label {
+    font-size: 10px;
+  }
+  
+  .port {
+    cursor: pointer;
+  }
+  
+  .edge-path {
+    fill: none;
+    stroke: #000000;
+    stroke-width: 1.5;
+    marker-end: url(#arrowhead);
+  }
+  
+  .node {
+    &:hover {
+      stroke: #000000;
+      stroke-width: 2;
+    }
+  }
+  
+  .node-active {
+    stroke: #f44336;
+    stroke-width: 2;
+  }
+  
+  .node-selected {
+    stroke: #4caf50;
+    stroke-width: 2;
+  }
