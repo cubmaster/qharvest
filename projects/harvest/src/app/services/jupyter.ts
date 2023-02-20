@@ -2,8 +2,8 @@ import {environment} from '../../environments/environment';
 
 import {BehaviorSubject, Subject} from "rxjs";
 
-import {Injectable, OnDestroy} from '@angular/core';
-import { v4 as uuidv4 } from 'uuid';
+import {Injectable} from '@angular/core';
+import {v4 as uuidv4} from 'uuid';
 import {Websocket, WebsocketBuilder, WebsocketEvents} from 'websocket-ts';
 
 export class Kernel{
@@ -12,31 +12,50 @@ export class Kernel{
 }
 
 
-export class Header{
-    constructor() {
-    }
-    msg_id:string=""
-    msg_type:string=""
-    channel:string=""
-    session:string=""
+export class Header {
+  msg_id: string = ""
+  msg_type: string = ""
+  channel: string = ""
+  session: string = ""
+
+  constructor() {
+  }
 
 }
-export class cellMetaData{
-  ui:string = "editor"
-  result:string[]=[]
+
+export class cellMetaData {
+  inputMap: Map<string, any>
+  resultMap: Map<string, any>
+
+  constructor(public ui: string = "",
+              public inputs: object = {},
+              public results: object = {},
+              public name: string = "",
+              public icon: string = "",
+              public type: string = "") {
+
+    this.inputMap = new Map(Object.entries(inputs));
+    this.resultMap = new Map(Object.entries(results));
+  }
+
 }
-export class cell{
+
+export class cell {
+  source: string[] = [];
+  outputs: any[] = [];
+  metadata: cellMetaData = new cellMetaData()
+  cell_type: string = "";
+  execution_count: number = 0;
+  id: string = "";
+
+  constructor() {
 
 
-  source:String[]=[];
-  outputs:any[]=[];
-  metadata: cellMetaData=new cellMetaData()
-  cell_type: string="";
-  execution_count: number=0;
-  id:string="";
+  }
 }
-export class JupyterNotebook{
-  cells: cell[]=[];
+
+export class JupyterNotebook {
+  cells: cell[] = [];
 }
 
 export class output{

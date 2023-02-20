@@ -1,75 +1,66 @@
 {
   "cells": [
     {
+      "id": "",
       "cell_type": "code",
-
-      "execution_count": 2,
-      "id": "70b08d5c",
+      "execution_count": 0,
       "metadata": {
-        "ui": "functions",
-        "result": []
+        "type": "Initialize",
+        "results": []
       },
       "outputs": [],
       "source": [
         "import pandas as pd\n",
         "import json\n",
-
         "pd.set_option('display.max_rows', None)\n",
         "pd.set_option('display.max_columns', None)\n",
         "pd.set_option('display.width', 2000)\n",
         "pd.set_option('display.float_format', '{:20,.2f}'.format)\n",
         "pd.set_option('display.max_colwidth', None)\n",
-        "\n",
-        "def append(json_data):\n",
-        " dfs = []\n",
-        " for data in json_data:\n",
-        "   file_url = data[0]\n",
-        "   df = pd.read_csv(file_url)\n",
-        "   columns_to_rename = {item['name']: item['target'] for item in data[1:] if item['selected']}\n",
-        "   df.rename(columns=columns_to_rename, inplace=True)\n",
-        "   dfs.append(df[columns_to_rename.values()])\n",
-        "\n",
-        " result = pd.concat(dfs, ignore_index=True)\n",
-        " return result\n",
-        "\n",
-        "def getcolumns(urls):\n",
-        "  data_dict = {}\n",
-        "  for url in urls:\n",
-        "    df = pd.read_csv(url,encoding = \"utf-8\")\n",
-        "    columns = df.columns.to_list()\n",
-        "    data_dict[url] = { \"columns\": columns}\n",
-        "\n",
-        "  return json.dumps(data_dict)\n",
-        "\n",
-        "def add(x,y):\n",
-        "    return x+y\n",
-        "\n",
-        "def sub(x,y):\n",
-        "    return x-y\n"
+        "\n"
       ]
     },
     {
       "source": [
+        "def sub(x,y):\n",
+        "    return x-y\n"
       ],
       "outputs": [],
       "metadata": {
-        "ui": "append",
-        "result": [
-          "append1"
-        ]
+        "type": "function",
+        "ui": "subtract",
+        "name": "sub",
+        "icon": "dash-circle",
+        "results": {
+          "result": 0
+        },
+        "inputs": {
+          "x": 0,
+          "y": 0
+        }
       },
       "cell_type": "",
       "execution_count": 0,
       "id": ""
     },
     {
-      "source": [],
+      "source": [
+        "def add(x,y):\n",
+        "    return x+y\n"
+      ],
       "outputs": [],
       "metadata": {
-        "ui": "mapping",
-        "result": [
-          "mapping2"
-        ]
+        "type": "function",
+        "ui": "add",
+        "name": "add",
+        "icon": "plus-circle",
+        "results": {
+          "result": 0
+        },
+        "inputs": {
+          "x": 0,
+          "y": 0
+        }
       },
       "cell_type": "",
       "execution_count": 0,

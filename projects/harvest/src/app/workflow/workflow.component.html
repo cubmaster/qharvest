@@ -1,19 +1,49 @@
-<div class="row">
+<div class="container">
+  <div aria-labelledby="offcanvasLabel" class="offcanvas offcanvas-start {{showFile}}" id="offcanvas" tabindex="-1">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title" id="offcanvasLabel">Offcanvas</h5>
+      <button (click)="showNotebook()" aria-label="Close" class="btn-close" data-bs-dismiss="offcanvas"
+              type="button"></button>
+    </div>
+    <div class="offcanvas-body">
+      <textarea [value]="jupFileText" style="height: 100vh; width: 100%"></textarea>
+    </div>
+  </div>
+
+  <div class="row">
 
     <div class="col-sm">
       <div class="list-group-horizontal-md">
-  
+
         <div class="list-inline-item">
           connection:{{connection_status}}
         </div>
         <div class="list-inline-item">
           session:{{session_status}}
         </div>
+        <button (click)="showNotebook()" aria-controls="offcanvasExample" class="btn btn-success"
+                data-bs-target="#offcanvasExample" data-bs-toggle="offcanvas">
+
+          <i class="bi bi-book"></i>
+
+
+        </button>
       </div>
     </div>
   </div>
   <div class="row">
-    <div class="graph-container">
+    <div class="col col-3">
+      <ul class="list-group">
+        <li *ngFor="let cell of functions" class="list-group-item">{{cell.metadata.name}}
+          <button (click)="addCell(cell)" class="btn btn-secondary float-end">
+            <i class="bi bi-{{cell.metadata.icon}}"></i>
+          </button>
+        </li>
+
+      </ul>
+    </div>
+    <div class="col col-9">
+      <div class="graph-container">
         <ngx-graph
           [links]="edges"
           [nodes]="nodes"
@@ -22,7 +52,7 @@
           [panOnZoom]="true"
           [enableZoom]="true"
 
-  
+
           (edgeStart)="onEdgeStart($event)"
           (edgeEnd)="onEdgeEnd($event)">
           <ng-template #nodeTemplate let-node>
@@ -30,10 +60,12 @@
               <svg:rect
                 [attr.width]="node.dimension.width"
                 [attr.height]="node.dimension.height"
-                [attr.fill]="node.options.color"
+                [attr.fill]="node.options?.color??'yellow'"
                 stroke="#000000"
                 stroke-width="1.5"
               ></svg:rect>
+              <svg [innerHTML]="bootstrapIcon(node.icon)" class="{{node.icon}}" fill="red" height="40" viewBox="0 0 16 16"
+                   width="40" x="5" y="5"></svg>
               <svg:text
                 class="node-label"
                 dy=".3em"
@@ -50,7 +82,7 @@
                   stroke="#000000"
                   stroke-width="1.5"
                   class="port"
-                 
+
                 ></svg:rect>
                 <svg:text
                   class="port-label"
@@ -62,8 +94,9 @@
           </ng-template>
         </ngx-graph>
       </div>
-      
+
+    </div>
+    <div>
+    </div>
   </div>
-  <div>
--
-  </div>
+</div>

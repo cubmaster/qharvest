@@ -30,9 +30,13 @@
               "projects/harvest/src/assets"
             ],
             "styles": [
-              "projects/harvest/src/styles.scss"
+              "projects/harvest/src/styles.scss",
+              "./node_modules/bootstrap/dist/css/bootstrap.css",
+              "./node_modules/bootstrap-icons/font/bootstrap-icons.scss"
             ],
-            "scripts": []
+            "scripts": [
+              "./node_modules/bootstrap/dist/js/bootstrap.js"
+            ]
           },
           "configurations": {
             "production": {
@@ -97,14 +101,6 @@
             "assets": [
               "projects/harvest/src/favicon.ico",
               "projects/harvest/src/assets"
-            ],
-            "styles": [
-              "projects/harvest/src/styles.scss",
-              "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "node_modules/bootstrap-icons/font/bootstrap-icons.css"
-            ],
-            "scripts": [
-              "node_modules/bootstrap/dist/js/bootstrap.js"
             ]
           }
         }

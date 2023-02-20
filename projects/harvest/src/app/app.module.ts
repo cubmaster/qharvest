@@ -1,11 +1,13 @@
-import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { NgxGraphModule } from '@swimlane/ngx-graph';
+import {NgModule} from '@angular/core';
+import {BrowserModule} from '@angular/platform-browser';
+import {NgxGraphModule} from '@swimlane/ngx-graph';
 
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
-import { Jupyter } from './services/jupyter';
-import { WorkflowComponent } from './workflow/workflow.component';
+import {AppRoutingModule} from './app-routing.module';
+import {AppComponent} from './app.component';
+import {Jupyter} from './services/jupyter';
+import {WorkflowComponent} from './workflow/workflow.component';
+import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
+
 
 @NgModule({
   declarations: [
@@ -15,7 +17,8 @@ import { WorkflowComponent } from './workflow/workflow.component';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    NgxGraphModule
+    NgxGraphModule,
+    BrowserAnimationsModule
   ],
   providers: [Jupyter],
   bootstrap: [AppComponent]
