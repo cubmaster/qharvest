@@ -9,14 +9,15 @@ import {WorkflowComponent} from './workflow/workflow.component';
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {CellPropertiesComponent} from './cell-properties/cell-properties.component';
 import {ModalComponent} from './modal/modal.component';
-
+import {DraggableDirective} from './services/draggable.directive';
 
 @NgModule({
   declarations: [
     AppComponent,
     WorkflowComponent,
     CellPropertiesComponent,
-    ModalComponent
+    ModalComponent,
+    DraggableDirective
   ],
   imports: [
     BrowserModule,

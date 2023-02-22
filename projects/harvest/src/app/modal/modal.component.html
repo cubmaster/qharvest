@@ -1,16 +1,21 @@
-<div #thisModal aria-labelledby="myModalLabel" class="modal fade" role="dialog" tabindex="-1">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title" id="myModalLabel">{{ title }}</h4>
+<div class="thisModal">
 
-      </div>
-      <div class="modal-body">
-        <ng-content></ng-content>
-      </div>
-      <div class="modal-footer">
-        <button (click)="close()" class="btn btn-default" data-dismiss="modal" type="button">Close</button>
+  <div #thisModal aria-labelledby="myModalLabel" class="modal fade" role="dialog" tabindex="-1">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div appDraggable class="modal-header">
+          <h4 class="modal-title" id="myModalLabel">{{ title }}</h4>
+          <i class="bi bi-{{icon??'info-circle'}}"></i>
+        </div>
+        <div class="modal-body">
+          <ng-content></ng-content>
+        </div>
+        <div class="modal-footer">
+          <button (click)="close()" class="btn btn-default" data-dismiss="modal" type="button">Close</button>
+        </div>
       </div>
     </div>
+    <div #myBackdrop class="modal-backdrop"></div>
   </div>
+
 </div>

@@ -97,7 +97,7 @@
     </div>
   </div>
 
-  <app-modal #cellModal [title]="selectedCell.id">
+  <app-modal #cellModal [icon]="selectedCell.metadata.icon" [title]="selectedCell.id">
 
     <app-cell-properties [cell]="selectedCell"></app-cell-properties>
 
