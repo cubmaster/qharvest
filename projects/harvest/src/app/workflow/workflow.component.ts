@@ -1,10 +1,13 @@
 import {Component, HostListener, OnInit, ViewChild} from '@angular/core';
 import {cell, cellMetaData, Jupyter, JupyterNotebook} from '../services/jupyter';
 import * as notebook from "../../assets/notebook.json";
-import {DagreLayout, Edge, GraphComponent, Layout} from '@swimlane/ngx-graph';
-import {port, portType, superNode} from "../services/graph.service";
+import {DagreLayout, Edge, GraphComponent, Layout, Node} from '@swimlane/ngx-graph';
+
 import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 import {v4 as uuidv4} from 'uuid';
+import {fromEvent, map, takeUntil} from "rxjs";
+import {port, portType, superNode} from "../services/graph.service";
+import {ModalComponent} from "../modal/modal.component";
 
 
 @Component({
@@ -13,8 +16,10 @@ import {v4 as uuidv4} from 'uuid';
   styleUrls: ['./workflow.component.scss']
 })
 export class WorkflowComponent implements OnInit {
-  @ViewChild(GraphComponent) graph: GraphComponent;
+  @ViewChild('cellModal') cellModal: ModalComponent;
+  @ViewChild(GraphComponent) graphComponent: GraphComponent;
 
+  selectedCell: cell = new cell();
   showFile: string = ""
   public connection_status: string = 'Closed'
   public session_status: string = 'Please Wait...'
@@ -77,6 +82,13 @@ export class WorkflowComponent implements OnInit {
     //workflow
   }
 
+  nodeClick(node: superNode) {
+    this.selectedCell = this.jupFile.cells.find(cell => cell.id == node.id)
+
+    this.cellModal.open();
+
+  }
+
   prepFunctions() {
     this.jupFile.cells.forEach((cell) => {
       if (cell.metadata.type == "function") {
@@ -88,30 +100,43 @@ export class WorkflowComponent implements OnInit {
   refreshNodes() {
 
     this.nodes = [];
+
     this.jupFile.cells.forEach((cell) => {
+      cell.metadata.inputMap = new Map(Object.entries(cell.metadata.inputs ?? []));
+      cell.metadata.resultMap = new Map(Object.entries(cell.metadata.results ?? []));
       if (cell.metadata.type !== 'Initialize' && cell.metadata.type !== 'function') {
         let n = new superNode();
+        // @ts-ignore
         n.id = cell.id;
+        n.dimension = {width: 50, height: 50}
+        n.label = cell.id
+        // @ts-ignore
         n.icon = cell.metadata.icon;
+
         cell.metadata.resultMap.forEach((value, key) => {
+          // @ts-ignore
           let p: port = new port(portType.output, n);
           p.label = key;
           p.value = value;
+          // @ts-ignore
           n.ports = [...n.ports, p]
 
         })
         cell.metadata.inputMap.forEach((value, key) => {
+          // @ts-ignore
           let p: port = new port(portType.input, n);
           p.label = key;
           p.value = value;
+          // @ts-ignore
           n.ports = [...n.ports, p]
 
         })
-        this.nodes = [...this.nodes, n]
+        // @ts-ignore
+        this.nodes = [...this.nodes ?? [], n]
       }
 
     })
-
+    this.graphComponent.createGraph();
   }
   Init() {
     if (this.init) {
@@ -135,21 +160,40 @@ export class WorkflowComponent implements OnInit {
       cell.metadata.inputs,
       cell.metadata.results,
       cell.metadata.name,
-      cell.metadata.icon);
+      cell.metadata.icon,
+      "cell");
     let target: cell = {
       cell_type: "code",
       execution_count: 0,
-      id: uuidv4(),
-      source: cell.source,
+      id: cell.metadata.ui + (this.jupFile.cells.length + 1),
+      source: [],
       metadata: Meta,
       outputs: [],
 
-    }
 
+    }
+    target.source = this.makeCode(target)
     this.jupFile.cells.push(target);
     //refresh the map
     this.refreshNodes()
 
+  }
+
+  onEdgeEnd(event: any) {
+    console.log('Edge end:', event);
+    const sourceNode = this.nodes.find(n => n.id === event.source);
+    const targetNode = this.nodes.find(n => n.id === event.target);
+    // @ts-ignore
+    const sourcePort = sourceNode.ports.find(p => p.id === event.sourcePort);
+    // @ts-ignore
+    const targetPort = targetNode.ports.find(p => p.id === event.targetPort);
+    const newEdge: Edge = <Edge>{
+      id: uuidv4(),
+      source: event.source,
+      target: event.target,
+      label: `${sourcePort.label} -> ${targetPort.label}`
+    };
+    this.edges = [...this.edges, newEdge];
   }
 
 
@@ -157,19 +201,32 @@ export class WorkflowComponent implements OnInit {
     console.log('Edge start:', event);
   }
 
+  onPortMouseDown(event: MouseEvent, node: Node, port: port) {
 
-  onEdgeEnd(event: any) {
-    console.log('Edge end:', event);
-    const sourceNode = this.nodes.find(n => n.id === event.source);
-    const targetNode = this.nodes.find(n => n.id === event.target);
-    const sourcePort = sourceNode.ports.find(p => p.id === event.sourcePort);
-    const targetPort = targetNode.ports.find(p => p.id === event.targetPort);
-    const newEdge: Edge = <Edge>{
+    // Prevent the default mouse event behavior
+    event.preventDefault();
+
+    // Get the coordinates of the mouse click
+    const mouseX = event.clientX;
+    const mouseY = event.clientY;
+    console.log({mouseX, mouseY})
+    // Create a new edge from the clicked port
+    const newEdge = {
       id: uuidv4(),
-      source: event.source,
-      target: event.target,
-      label: `${sourcePort.label} -> ${targetPort.label}`
-    });
+      source: {
+        id: node.id,
+        port: port.id
+      },
+      target: {
+        x: mouseX,
+        y: mouseY
+      }
+    };
+
+
+    // Update the edges array to include the new edge
+    // @ts-ignore
+    //this.edges = [...this.edges??[], newEdge];
   }
 
   showNotebook() {
@@ -188,6 +245,80 @@ export class WorkflowComponent implements OnInit {
 
     return this.sanitizer.bypassSecurityTrustHtml(svg);
   }
+
+  onPortMouseDown_x(event: MouseEvent, node: Node, port: port) {
+
+    // Prevent the default mouse event behavior
+    event.preventDefault();
+
+    // Get the coordinates of the mouse click
+    const mouseX = event.clientX;
+    const mouseY = event.clientY;
+
+    // Create a new edge from the clicked port
+    const newEdge = {
+      id: uuidv4(),
+      source: {
+        id: node.id,
+        port: port.id
+      },
+      target: {
+        x: mouseX,
+        y: mouseY
+      }
+    };
+
+
+    // Update the edges array to include the new edge
+    // @ts-ignore
+    this.edges = [...this.edges ?? [], newEdge];
+
+
+    // Subscribe to mousemove events until the user releases the mouse button
+    const mouseMove$ = fromEvent(document, 'mousemove').pipe(
+      map((moveEvent: MouseEvent) => {
+        return {
+          x: moveEvent.clientX,
+          y: moveEvent.clientY
+        };
+      }),
+      takeUntil(fromEvent(document, 'mouseup'))
+    );
+
+    // Subscribe to the mousemove stream and update the target coordinates of the new edge
+    mouseMove$.subscribe(({x, y}) => {
+      // @ts-ignore
+      this.edges = this.edges.map<superEdge>((edge) => {
+        if (edge.id === newEdge.id) {
+          return {
+            ...edge,
+            target: {x, y}
+          };
+        }
+        return edge;
+      });
+    });
+  }
+
+  private makeCode(cell: cell): string[] {
+
+    let code: string[] = []
+    cell.source = [];
+
+
+    const results = Object.getOwnPropertyNames(cell.metadata.results);
+    const params = Object.getOwnPropertyNames(cell.metadata.inputs);
+
+    results.forEach((result, ix) => {
+      results[ix] = `${cell.id}_${result}`
+    })
+
+    code.push(`${results}=${cell.metadata.name}(${params})`)
+
+
+    return code;
+  }
+
 }
 
 
