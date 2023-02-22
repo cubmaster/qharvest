@@ -34,8 +34,6 @@ export class cellMetaData {
               public icon: string = "",
               public type: string = "") {
 
-    this.inputMap = new Map(Object.entries(inputs));
-    this.resultMap = new Map(Object.entries(results));
   }
 
 }

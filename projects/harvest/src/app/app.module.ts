@@ -7,12 +7,16 @@ import {AppComponent} from './app.component';
 import {Jupyter} from './services/jupyter';
 import {WorkflowComponent} from './workflow/workflow.component';
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
+import {CellPropertiesComponent} from './cell-properties/cell-properties.component';
+import {ModalComponent} from './modal/modal.component';
 
 
 @NgModule({
   declarations: [
     AppComponent,
-    WorkflowComponent
+    WorkflowComponent,
+    CellPropertiesComponent,
+    ModalComponent
   ],
   imports: [
     BrowserModule,

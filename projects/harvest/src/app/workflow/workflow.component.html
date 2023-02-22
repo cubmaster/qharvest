@@ -25,8 +25,6 @@
                 data-bs-target="#offcanvasExample" data-bs-toggle="offcanvas">
 
           <i class="bi bi-book"></i>
-
-
         </button>
       </div>
     </div>
@@ -52,9 +50,7 @@
           [panOnZoom]="true"
           [enableZoom]="true"
 
-
-          (edgeStart)="onEdgeStart($event)"
-          (edgeEnd)="onEdgeEnd($event)">
+    >
           <ng-template #nodeTemplate let-node>
             <svg:g>
               <svg:rect
@@ -63,6 +59,7 @@
                 [attr.fill]="node.options?.color??'yellow'"
                 stroke="#000000"
                 stroke-width="1.5"
+                (click)="nodeClick(node)"
               ></svg:rect>
               <svg [innerHTML]="bootstrapIcon(node.icon)" class="{{node.icon}}" fill="red" height="40" viewBox="0 0 16 16"
                    width="40" x="5" y="5"></svg>
@@ -82,7 +79,7 @@
                   stroke="#000000"
                   stroke-width="1.5"
                   class="port"
-
+                  (mousedown)="onPortMouseDown($event,node,port)"
                 ></svg:rect>
                 <svg:text
                   class="port-label"
@@ -99,4 +96,12 @@
     <div>
     </div>
   </div>
+
+  <app-modal #cellModal [title]="selectedCell.id">
+
+    <app-cell-properties [cell]="selectedCell"></app-cell-properties>
+
+  </app-modal>
+
+
 </div>

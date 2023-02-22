@@ -164,8 +164,8 @@ export class WorkflowComponent implements OnInit {
     const targetNode = this.nodes.find(n => n.id === event.target);
     const sourcePort = sourceNode.ports.find(p => p.id === event.sourcePort);
     const targetPort = targetNode.ports.find(p => p.id === event.targetPort);
-    this.edges.push({
-      id: `${event.source}-${event.target}`,
+    const newEdge: Edge = <Edge>{
+      id: uuidv4(),
       source: event.source,
       target: event.target,
       label: `${sourcePort.label} -> ${targetPort.label}`
