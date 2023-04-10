@@ -207,17 +207,18 @@ export class Jupyter {
           }
 
 
-          default:{
-            console.error("Unmapped channel");
-            console.error(msg);
-            break;
-          }
+        default: {
+          console.error("Unmapped channel");
+          console.error(msg);
+          break;
+        }
       }
     });
 
   }
 
-  //takes a cell with our metadata standard and creates code for it
+  //takes a cell with our metadata standard and creates code for
+
   makeCode(cell: cell): string[] {
 
     let code: string[] = []
