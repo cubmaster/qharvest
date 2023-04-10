@@ -12,7 +12,7 @@ spec:
       protocol: TCP
       port: 8888
       targetPort: 8888
-      nodePort: 30421
+      nodePort: 32544
   selector:
     gateway-selector: enterprise-gateway
   type: NodePort

@@ -1,11 +1,10 @@
 import {Component, HostListener, OnInit, ViewChild} from '@angular/core';
-import {cell, cellMetaData, Jupyter, JupyterNotebook} from '../services/jupyter';
+import {cell, cellMetaData, cellVariable, Jupyter, JupyterNotebook} from '../services/jupyter';
 import * as notebook from "../../assets/notebook.json";
-import {DagreLayout, Edge, GraphComponent, Layout, Node} from '@swimlane/ngx-graph';
+import {DagreLayout, Edge, GraphComponent, Layout} from '@swimlane/ngx-graph';
 
 import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 import {v4 as uuidv4} from 'uuid';
-import {fromEvent, map, takeUntil} from "rxjs";
 import {port, portType, superNode} from "../services/graph.service";
 import {ModalComponent} from "../modal/modal.component";
 
@@ -26,14 +25,18 @@ export class WorkflowComponent implements OnInit {
   private init: boolean = true;
   public jupFile: JupyterNotebook = new JupyterNotebook();
   nodes: superNode[] = []
+  links: Edge[] = [];
   functions: cell[] = []
 
-
-  public edges: Edge[] = [];
   jupFileText: string = "";
   public layout: Layout = new DagreLayout();
+  private sourcePort: port;
+  private isDragging: boolean = false;
+
+  private sourceEdge: Edge;
 
   constructor(public jup: Jupyter, private sanitizer: DomSanitizer) {
+
 
   }
 
@@ -41,7 +44,6 @@ export class WorkflowComponent implements OnInit {
   beforeUnloadHandler() {
     this.killConnection();
   }
-
 
 
   async ngOnDestroy() {
@@ -60,7 +62,7 @@ export class WorkflowComponent implements OnInit {
   async ngOnInit() {
 
     // @ts-ignore
-    this.jupFile = notebook;
+    this.jupFile = notebook.default;
 
     await this.jup.connect();
     this.jup.$connectionstatus.subscribe((val) => {
@@ -102,8 +104,7 @@ export class WorkflowComponent implements OnInit {
     this.nodes = [];
 
     this.jupFile.cells.forEach((cell) => {
-      cell.metadata.inputMap = new Map(Object.entries(cell.metadata.inputs ?? []));
-      cell.metadata.resultMap = new Map(Object.entries(cell.metadata.results ?? []));
+
       if (cell.metadata.type !== 'Initialize' && cell.metadata.type !== 'function') {
         let n = new superNode();
         // @ts-ignore
@@ -113,20 +114,22 @@ export class WorkflowComponent implements OnInit {
         // @ts-ignore
         n.icon = cell.metadata.icon;
 
-        cell.metadata.resultMap.forEach((value, key) => {
+        cell.metadata.results?.forEach((value, key) => {
           // @ts-ignore
           let p: port = new port(portType.output, n);
-          p.label = key;
-          p.value = value;
+          p.label = value.key;
+          p.value = value.value;
+          p.type = portType.output;
           // @ts-ignore
           n.ports = [...n.ports, p]
 
         })
-        cell.metadata.inputMap.forEach((value, key) => {
+        cell.metadata.inputs?.forEach((value, ix) => {
           // @ts-ignore
           let p: port = new port(portType.input, n);
-          p.label = key;
-          p.value = value;
+          p.label = value.key;
+          p.value = value.value;
+          p.type = portType.input;
           // @ts-ignore
           n.ports = [...n.ports, p]
 
@@ -156,9 +159,15 @@ export class WorkflowComponent implements OnInit {
 
     // @ts-ignore
 
+    const resultCopy: cellVariable[] = cell.metadata.results.map<cellVariable[]>((result) => {
+      result.resultId = uuidv4();
+      return result;
+    })
+
+
     const Meta: cellMetaData = new cellMetaData(cell.metadata.ui,
       cell.metadata.inputs,
-      cell.metadata.results,
+      resultCopy,
       cell.metadata.name,
       cell.metadata.icon,
       "cell");
@@ -172,62 +181,13 @@ export class WorkflowComponent implements OnInit {
 
 
     }
-    target.source = this.makeCode(target)
+    /// target.source = this.jup.makeCode(target)
     this.jupFile.cells.push(target);
     //refresh the map
     this.refreshNodes()
 
   }
 
-  onEdgeEnd(event: any) {
-    console.log('Edge end:', event);
-    const sourceNode = this.nodes.find(n => n.id === event.source);
-    const targetNode = this.nodes.find(n => n.id === event.target);
-    // @ts-ignore
-    const sourcePort = sourceNode.ports.find(p => p.id === event.sourcePort);
-    // @ts-ignore
-    const targetPort = targetNode.ports.find(p => p.id === event.targetPort);
-    const newEdge: Edge = <Edge>{
-      id: uuidv4(),
-      source: event.source,
-      target: event.target,
-      label: `${sourcePort.label} -> ${targetPort.label}`
-    };
-    this.edges = [...this.edges, newEdge];
-  }
-
-
-  onEdgeStart(event: any) {
-    console.log('Edge start:', event);
-  }
-
-  onPortMouseDown(event: MouseEvent, node: Node, port: port) {
-
-    // Prevent the default mouse event behavior
-    event.preventDefault();
-
-    // Get the coordinates of the mouse click
-    const mouseX = event.clientX;
-    const mouseY = event.clientY;
-    console.log({mouseX, mouseY})
-    // Create a new edge from the clicked port
-    const newEdge = {
-      id: uuidv4(),
-      source: {
-        id: node.id,
-        port: port.id
-      },
-      target: {
-        x: mouseX,
-        y: mouseY
-      }
-    };
-
-
-    // Update the edges array to include the new edge
-    // @ts-ignore
-    //this.edges = [...this.edges??[], newEdge];
-  }
 
   showNotebook() {
 
@@ -246,79 +206,67 @@ export class WorkflowComponent implements OnInit {
     return this.sanitizer.bypassSecurityTrustHtml(svg);
   }
 
-  onPortMouseDown_x(event: MouseEvent, node: Node, port: port) {
 
-    // Prevent the default mouse event behavior
-    event.preventDefault();
-
-    // Get the coordinates of the mouse click
-    const mouseX = event.clientX;
-    const mouseY = event.clientY;
-
-    // Create a new edge from the clicked port
-    const newEdge = {
-      id: uuidv4(),
-      source: {
-        id: node.id,
-        port: port.id
-      },
-      target: {
-        x: mouseX,
-        y: mouseY
-      }
-    };
+  portDrag($event: any) {
+    this.isDragging = true;
+    $event.preventDefault();
+    $event.stopPropagation();
 
 
-    // Update the edges array to include the new edge
-    // @ts-ignore
-    this.edges = [...this.edges ?? [], newEdge];
+  }
+
+  portDragStart($event: any, port: port) {
+
+  }
+
+  portDragEnd($event: any, target: port) {
+    this.isDragging = false;
+  }
+
+  portDragOver($event: any, port: port) {
+    $event.preventDefault();
+  }
+
+  portMouseDown($event: any, port: port) {
+    this.sourcePort = port;
+    this.isDragging = true;
+    $event.preventDefault();
+    $event.stopPropagation();
+    //$event.dataTransfer.setData('sourceNodeId', port.id);
 
 
-    // Subscribe to mousemove events until the user releases the mouse button
-    const mouseMove$ = fromEvent(document, 'mousemove').pipe(
-      map((moveEvent: MouseEvent) => {
-        return {
-          x: moveEvent.clientX,
-          y: moveEvent.clientY
-        };
-      }),
-      takeUntil(fromEvent(document, 'mouseup'))
-    );
+  }
 
-    // Subscribe to the mousemove stream and update the target coordinates of the new edge
-    mouseMove$.subscribe(({x, y}) => {
-      // @ts-ignore
-      this.edges = this.edges.map<superEdge>((edge) => {
-        if (edge.id === newEdge.id) {
-          return {
-            ...edge,
-            target: {x, y}
-          };
-        }
-        return edge;
+  portDrop($event: any, target: port) {
+    if (this.sourcePort && target && this.isDragging) {
+      this.links.push({
+        id: `link_${this.sourcePort.id}_${target.id}`,
+        source: this.sourcePort.id,
+        target: target.id,
+
       });
-    });
+      this.isDragging = false;
+    }
   }
 
-  private makeCode(cell: cell): string[] {
-
-    let code: string[] = []
-    cell.source = [];
-
-
-    const results = Object.getOwnPropertyNames(cell.metadata.results);
-    const params = Object.getOwnPropertyNames(cell.metadata.inputs);
-
-    results.forEach((result, ix) => {
-      results[ix] = `${cell.id}_${result}`
-    })
-
-    code.push(`${results}=${cell.metadata.name}(${params})`)
-
-
-    return code;
+  portMouseMove($event: any) {
+    if (this.isDragging) {
+      let position = {x: $event.clientX, y: $event.clientY}
+      console.log(position)
+    }
   }
 
+  portMouseUp($event: any, target: port) {
+    if (this.sourcePort && target && this.isDragging) {
+      this.links.push({
+        id: `link_${this.sourcePort.id}_${target.id}`,
+        source: this.sourcePort.id,
+        target: target.id,
+
+      });
+      this.isDragging = false;
+    }
+  }
 }
 
 

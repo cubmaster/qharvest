@@ -23,13 +23,22 @@ export class Header {
 
 }
 
+export class cellVariable {
+  constructor(
+    public key: string = "",
+    public value: string = "",
+    public type: string = "",
+    public resultId: string = uuidv4()
+  ) {
+  }
+}
+
 export class cellMetaData {
-  inputMap: Map<string, any>
-  resultMap: Map<string, any>
+
 
   constructor(public ui: string = "",
-              public inputs: object = {},
-              public results: object = {},
+              public inputs: cellVariable[] = [],
+              public results: cellVariable[] = [],
               public name: string = "",
               public icon: string = "",
               public type: string = "") {
@@ -73,7 +82,8 @@ export class kernel_status {
        parent_header: Header = new Header();
        metadata: object={}
        content: any;
-       buffers: object[]=[]
+   buffers: object[] = []
+   msg_type: string;
      }
 
 export class execute_request{
@@ -113,23 +123,27 @@ export class Jupyter {
   $stream= this.stream.asObservable();
   $error= this.error.asObservable();
   $input= this.input.asObservable();
-  $result= this.result.asObservable();
-  $initalize= this.initalize.asObservable();
+  $result = this.result.asObservable();
+  $initalize = this.initalize.asObservable();
 
   $connectionstatus = this.connectionstatus.asObservable();
-  private init:boolean = false;
-  session: string =  uuidv4();
-  kernel:any;
-
-  ws:Websocket|undefined;
+  session: string = uuidv4();
+  kernel: any;
+  ws: Websocket | undefined;
+  private init: boolean = false;
+  private currentCell!: cell
 
   constructor() {
     this.ws = undefined;
+    this.$stream.subscribe((result: Message) => this.findResults(result))
+    this.$result.subscribe((result: Message) => this.findResults(result))
   }
-  async deleteSession(){
+
+  async deleteSession() {
     await this.delete<void>(environment.gatewayUrl + 'api/sessions/' + this.session)
   }
-  async disconnect(){
+
+  async disconnect() {
    await this.delete<Kernel>(environment.gatewayUrl + 'api/kernels/' + this.kernel.id)
   }
   async connect(){
@@ -147,58 +161,46 @@ export class Jupyter {
       msg.header.channel="shell";
       msg.header.msg_type= "status";
       msg.header.msg_id = uuidv4()
-      console.log("Session init")
+
       this.ws?.send(JSON.stringify(msg));
       if (!this.init){
         this.init=true;
         this.initalize.next(true)
       }
     })
-    this.ws.addEventListener(WebsocketEvents.message, ( ws,msg:any)=>{
-       // console.log(msg);
-        this.session = msg.data.header?.session ??  "";
-        const data:Message = JSON.parse(msg.data)
-        console.log(msg);
-        switch (data.channel){
-          case "iopub": {
+    this.ws.addEventListener(WebsocketEvents.message, ( ws,msg:any)=> {
+
+      this.session = msg.data.header?.session ?? "";
+      const data: Message = JSON.parse(msg.data)
+      console.debug(data.channel + '==>' + data.msg_type)
+      console.debug(data)
+      switch (data.channel) {
+        case "iopub": {
 
 
-            switch (data.header.msg_type) {
-              case "stream": {
-                this.stream.next(data);
-                console.log('stream')
-                console.log(data)
-                break;
-              }
-              case "status": {
+          switch (data.header.msg_type) {
+            case "stream": {
+              this.stream.next(data);
+              break;
+            }
+            case "status": {
                 this.status.next(data);
-                console.log('status')
-                console.log(data)
                 break;
               }
               case "error": {
                 this.error.next(data);
-                console.log('error')
-                console.error(data)
                 break;
               }
               case "execute_reply": {
                 this.result.next(data);
-                console.log('execute_reply')
-                console.log(data)
                 break;
               }
               case "execute_result": {
                 this.result.next(data);
-                console.log('execute_result')
-                console.log(data)
                 break;
               }
               case "execute_input": {
                 this.input.next(data);
-                console.log('execute_input')
-                console.log(data)
-
                 break;
               }
               break;
@@ -208,9 +210,7 @@ export class Jupyter {
           case "shell":{
             switch (data.header.msg_type) {
               case "execute_reply": {
-                this.input.next(msg.content);
-                console.log('execute_reply_shell')
-                console.log(data)
+                this.input.next(data);
                 break;
               }
             }
@@ -223,22 +223,91 @@ export class Jupyter {
             console.error(msg);
             break;
           }
-        }
+      }
     });
 
   }
 
 
+  makeCode(cell: cell): string[] {
 
-  run(code:string,msgid = uuidv4()):string{
-        let msg:Message = new Message();
-       let exec:execute_request = new execute_request();
-       exec.code =code;
+    let code: string[] = []
+    cell.source = [];
 
-       msg.content = exec;
-       msg.channel="shell";
-       msg.header.channel="shell";
-       msg.header.msg_type= "execute_request";
+
+    const results = cell.metadata.results.map((cellVar: cellVariable) => cellVar.key);
+    const params = cell.metadata.inputs.map((cellVar: cellVariable) => cellVar.key);
+
+    results.forEach((result, ix) => {
+      results[ix] = `${cell.id}_${result}`
+    })
+    cell.metadata.inputs.forEach((cellVar: cellVariable) => {
+      code.push(`${cellVar.key}=${cellVar.value}`)
+    })
+    if (results.length > 0) {
+      code.push(`${results}=${cell.metadata.name}(${params})`)
+    } else {
+      code.push(`${cell.metadata.name}(${params})`)
+    }
+
+
+    cell.source = [...code]
+
+    return code;
+  }
+
+  executeCell(cell: cell) {
+
+    this.currentCell = cell;
+    const code = this.makeCode(cell).join('\n');
+    console.debug(code)
+    this.run(code)
+    //this secondary execute gets the results back and puts them in the metadata for the cell
+    this.currentCell.metadata.results.forEach((result) => {
+      const result_code = `print (${cell.id}_${result.key})`
+      result.resultId = uuidv4();
+      console.log(result_code);
+      this.run(result_code, result.resultId);
+    })
+  }
+
+
+  listOutPuts(notebook: JupyterNotebook): string[] {
+    let outputs: string[] = [];
+    notebook.cells.forEach((cell: cell) => {
+      cell.metadata.results.forEach((result) => {
+        if (cell.metadata.type == "cell") {
+          outputs.push(`${cell.id}_${result.key}`);
+        }
+      })
+    })
+
+    return outputs;
+
+
+  }
+
+  executeNotebook(notebook: JupyterNotebook, lastCell: cell = null) {
+    //if lastCell is null then process whole notebook
+    //otherwise calculate upto and including this cell
+    notebook.cells.forEach((cell: cell) => {
+      this.executeCell(cell);
+      if (lastCell === cell) {
+        return;
+      }
+    })
+
+  }
+
+  run(code: string, msgid = uuidv4()): string {
+    let msg: Message = new Message();
+    let exec: execute_request = new execute_request();
+    exec.code = code;
+
+    msg.content = exec;
+    msg.channel = "shell";
+    msg.header.channel = "shell";
+    msg.header.msg_type = "execute_request";
        msg.header.msg_id =msgid;
        msg.header.session = this.session ;
 
@@ -246,6 +315,17 @@ export class Jupyter {
 
       return msgid;
 
+  }
+
+  private findResults(msg: Message) {
+    if (!this.currentCell) {
+      throw Error("No Cell being processed")
+    }
+    this.currentCell.metadata.results.forEach((resultVar) => {
+      if (msg.parent_header.msg_id === resultVar.resultId) {
+        resultVar.value = msg.content.text;
+      }
+    })
   }
 
   async post<T>(body:object,url:string){

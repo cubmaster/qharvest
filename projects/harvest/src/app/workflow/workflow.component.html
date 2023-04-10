@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container" xmlns:svg="http://www.w3.org/1999/XSL/Transform">
   <div aria-labelledby="offcanvasLabel" class="offcanvas offcanvas-start {{showFile}}" id="offcanvas" tabindex="-1">
     <div class="offcanvas-header">
       <h5 class="offcanvas-title" id="offcanvasLabel">Offcanvas</h5>
@@ -9,7 +9,11 @@
       <textarea [value]="jupFileText" style="height: 100vh; width: 100%"></textarea>
     </div>
   </div>
-
+  <div>
+        <pre>
+         {{links|json}}
+      </pre>
+  </div>
   <div class="row">
 
     <div class="col-sm">
@@ -43,7 +47,7 @@
     <div class="col col-9">
       <div class="graph-container">
         <ngx-graph
-          [links]="edges"
+          [links]="links"
           [nodes]="nodes"
           [layout]="layout"
           [autoZoom]="true"
@@ -59,7 +63,8 @@
                 [attr.fill]="node.options?.color??'yellow'"
                 stroke="#000000"
                 stroke-width="1.5"
-                (click)="nodeClick(node)"
+                (dblclick)="nodeClick(node)"
+
               ></svg:rect>
               <svg [innerHTML]="bootstrapIcon(node.icon)" class="{{node.icon}}" fill="red" height="40" viewBox="0 0 16 16"
                    width="40" x="5" y="5"></svg>
@@ -71,6 +76,7 @@
               >{{ node.label }}</svg:text>
               <svg:g *ngFor="let port of node.ports" class="port-group">
                 <svg:rect
+                  (drag)="portDrag($event)"
                   [attr.width]="16"
                   [attr.height]="16"
                   [attr.x]="port.position.x - 8"
@@ -79,7 +85,14 @@
                   stroke="#000000"
                   stroke-width="1.5"
                   class="port"
-                  (mousedown)="onPortMouseDown($event,node,port)"
+                  (dragend)="portDragEnd($event,port)"
+                  (dragover)="portDragOver($event,port)"
+                  (dragstart)="portDragStart($event,port)"
+                  (drop)="portDrop($event,port)"
+                  (mousedown)="portMouseDown($event,port)"
+                  (mousemove)="portMouseMove($event)"
+                  (mouseup)="portMouseUp($event,port)"
+                  [id]="'node.id + port.id'"
                 ></svg:rect>
                 <svg:text
                   class="port-label"
@@ -93,13 +106,13 @@
       </div>
 
     </div>
-    <div>
-    </div>
+
   </div>
+
 
   <app-modal #cellModal [icon]="selectedCell.metadata.icon" [title]="selectedCell.id">
 
-    <app-cell-properties [cell]="selectedCell"></app-cell-properties>
+    <app-cell-properties [cell]="selectedCell" class="props"></app-cell-properties>
 
   </app-modal>
 

@@ -1,11 +1,11 @@
 {
   "cells": [
     {
-      "id": "",
+      "id": "init",
       "cell_type": "code",
       "execution_count": 0,
       "metadata": {
-        "type": "Initialize",
+        "type": "initialize",
         "results": []
       },
       "outputs": [],
@@ -31,17 +31,29 @@
         "ui": "subtract",
         "name": "sub",
         "icon": "dash-circle",
-        "results": {
-          "result": 0
-        },
-        "inputs": {
-          "x": 0,
-          "y": 0
-        }
+        "results": [
+          {
+            "key": "result",
+            "value": "0",
+            "type": "number"
+          }
+        ],
+        "inputs": [
+          {
+            "key": "x",
+            "value": "0",
+            "type": "number"
+          },
+          {
+            "key": "y",
+            "value": "0",
+            "type": "number"
+          }
+        ]
       },
-      "cell_type": "",
+      "cell_type": "code",
       "execution_count": 0,
-      "id": ""
+      "id": "sub"
     },
     {
       "source": [
@@ -54,17 +66,130 @@
         "ui": "add",
         "name": "add",
         "icon": "plus-circle",
-        "results": {
-          "result": 0
-        },
-        "inputs": {
-          "x": 0,
-          "y": 0
-        }
+        "results": [
+          {
+            "key": "result",
+            "value": "0",
+            "type": "number"
+          }
+        ],
+        "inputs": [
+          {
+            "key": "x",
+            "value": "0",
+            "type": "number"
+          },
+          {
+            "key": "y",
+            "value": "0",
+            "type": "number"
+          }
+        ]
       },
-      "cell_type": "",
+      "cell_type": "code",
       "execution_count": 0,
-      "id": ""
+      "id": "add"
+    },
+    {
+      "source": [
+        "def df_to_json(df):\n",
+        "    df.reset_index(drop=True, inplace=True)\n",
+        "    json_result=df.to_json()\n",
+        "    return json_result\n"
+      ],
+      "outputs": [],
+      "metadata": {
+        "type": "function",
+        "ui": "tojson",
+        "name": "df_to_json",
+        "icon": "eye",
+        "results": [
+          {
+            "key": "result",
+            "value": "",
+            "type": "string"
+          }
+        ],
+        "inputs": [
+          {
+            "key": "df",
+            "value": "",
+            "type": "dataframe"
+          }
+        ]
+      },
+      "cell_type": "code",
+      "execution_count": 0,
+      "id": "df_to_json"
+    },
+    {
+      "source": [
+        "def append(df1,df2):\n",
+        " result = pd.concat([df1,df2])\n",
+        " return result\n",
+        "\n"
+      ],
+      "outputs": [],
+      "metadata": {
+        "type": "function",
+        "ui": "Append",
+        "name": "append",
+        "icon": "plus-circle",
+        "results": [
+          {
+            "key": "result",
+            "value": "",
+            "type": "dataframe"
+          }
+        ],
+        "inputs": [
+          {
+            "key": "df1",
+            "value": "",
+            "type": "textarea"
+          },
+          {
+            "key": "df2",
+            "value": "",
+            "type": "textarea"
+          }
+        ]
+      },
+      "cell_type": "code",
+      "execution_count": 0,
+      "id": "append_function"
+    },
+    {
+      "source": [
+        "def download(url):\n",
+        "  df = pd.read_csv(url)\n",
+        "  return df\n",
+        "  \n"
+      ],
+      "outputs": [],
+      "metadata": {
+        "type": "function",
+        "ui": "download",
+        "name": "download",
+        "icon": "dash-circle",
+        "results": [
+          {
+            "key": "result",
+            "value": "",
+            "type": "dataframe"
+          }
+        ],
+        "inputs": [
+          {
+            "key": "url",
+            "value": "'https://data.cityofnewyork.us/api/views/kku6-nxdu/rows.csv?accessType=DOWNLOAD'",
+            "type": "text"
+          }
+        ]
+      },
+      "cell_type": "code",
+      "execution_count": 0,
+      "id": "download_function"
     }
   ],
   "metadata": {

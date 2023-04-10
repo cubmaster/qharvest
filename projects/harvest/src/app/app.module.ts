@@ -10,6 +10,8 @@ import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {CellPropertiesComponent} from './cell-properties/cell-properties.component';
 import {ModalComponent} from './modal/modal.component';
 import {DraggableDirective} from './services/draggable.directive';
+import {FormsModule} from "@angular/forms";
+import {WorkstackComponent} from './workstack/workstack.component';
 
 @NgModule({
   declarations: [
@@ -17,13 +19,15 @@ import {DraggableDirective} from './services/draggable.directive';
     WorkflowComponent,
     CellPropertiesComponent,
     ModalComponent,
-    DraggableDirective
+    DraggableDirective,
+    WorkstackComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     NgxGraphModule,
-    BrowserAnimationsModule
+    BrowserAnimationsModule,
+    FormsModule
   ],
   providers: [Jupyter],
   bootstrap: [AppComponent]
