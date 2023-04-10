@@ -1,7 +1,5 @@
 import {environment} from '../../environments/environment';
-
 import {BehaviorSubject, Subject} from "rxjs";
-
 import {Injectable} from '@angular/core';
 import {v4 as uuidv4} from 'uuid';
 import {Websocket, WebsocketBuilder, WebsocketEvents} from 'websocket-ts';
@@ -22,7 +20,7 @@ export class Header {
   }
 
 }
-
+//used for both input and output variables for a cell metadata
 export class cellVariable {
   constructor(
     public key: string = "",
@@ -35,18 +33,18 @@ export class cellVariable {
 
 export class cellMetaData {
 
-
+  //per notebook standard this can be whatever we want.  So we can change this per our ui needs
   constructor(public ui: string = "",
               public inputs: cellVariable[] = [],
               public results: cellVariable[] = [],
               public name: string = "",
               public icon: string = "",
               public type: string = "") {
-
   }
 
 }
 
+//jupyter notebook cell per spec
 export class cell {
   source: string[] = [];
   outputs: any[] = [];
@@ -65,28 +63,19 @@ export class JupyterNotebook {
   cells: cell[] = [];
 }
 
-export class output{
-  output_type:string=""
-  data:object ={}
-  metadata:object={}
+//All websocket messages are in this format
+export class Message {
+  channel: string = "";
+  header: Header = new Header();
+  parent_header: Header = new Header();
+  metadata: object = {}
+  content: any;
+  buffers: object[] = []
+  msg_type: string;
 }
 
-export class kernel_status {
-  text:string=""
-  execution_state:string =""
-  evalue:string = ""
-}
- export    class Message{
-       channel: string="";
-       header: Header = new Header();
-       parent_header: Header = new Header();
-       metadata: object={}
-       content: any;
-   buffers: object[] = []
-   msg_type: string;
-     }
-
-export class execute_request{
+//specific content for the message for requesting code to be executed
+export class execute_request {
 
 'code' : string =''
 
@@ -101,16 +90,11 @@ export class execute_request{
 
 'stop_on_error' : boolean = true;
 }
-export class outputData{
-  name:string="";
-  data:object={};
-}
+
 
 @Injectable()
 export class Jupyter {
-  panelData: Map<string, object> = new Map<string, object>()
 
-  panelDataChange: Subject<string> = new Subject();//this should really be on another service
    status: Subject<Message> = new Subject();
    stream: Subject<Message> = new Subject();
    error: Subject<Message> = new Subject();
@@ -135,7 +119,10 @@ export class Jupyter {
 
   constructor() {
     this.ws = undefined;
+    //https://jupyter-client.readthedocs.io/en/latest/messaging.html
+    //Stream socket hooks execute_reply messages
     this.$stream.subscribe((result: Message) => this.findResults(result))
+    //result socket hooks
     this.$result.subscribe((result: Message) => this.findResults(result))
   }
 
@@ -146,20 +133,20 @@ export class Jupyter {
   async disconnect() {
    await this.delete<Kernel>(environment.gatewayUrl + 'api/kernels/' + this.kernel.id)
   }
-  async connect(){
+  async connect() {
     let k = new Kernel();
-    k.name="python_kubernetes"
-
-    this.kernel = await this.post<Kernel>(k,environment.gatewayUrl + 'api/kernels')
-
-    this.ws = new WebsocketBuilder(environment.gatewayWsUrl +'api/kernels/' + this.kernel.id + '/channels').build();
-    this.ws.addEventListener(WebsocketEvents.open, (sub,event )=>{
+    k.name = "python_kubernetes"     //controls the type of kernel. There is an api to get a list of what is available
+    //starts a new kernel
+    this.kernel = await this.post<Kernel>(k, environment.gatewayUrl + 'api/kernels')
+    //connects to the kernel we just started
+    this.ws = new WebsocketBuilder(environment.gatewayWsUrl + 'api/kernels/' + this.kernel.id + '/channels').build();
+    this.ws.addEventListener(WebsocketEvents.open, (sub, event) => {
       this.connectionstatus.next("Open");
       let msg = new Message()
-
-      msg.channel="iopub";
-      msg.header.channel="shell";
-      msg.header.msg_type= "status";
+      //ask kernel for status of the kernel after its opened
+      msg.channel = "iopub";
+      msg.header.channel = "shell";
+      msg.header.msg_type = "status";
       msg.header.msg_id = uuidv4()
 
       this.ws?.send(JSON.stringify(msg));
@@ -168,43 +155,45 @@ export class Jupyter {
         this.initalize.next(true)
       }
     })
+    //handles all websocket messages from the kernel
     this.ws.addEventListener(WebsocketEvents.message, ( ws,msg:any)=> {
 
       this.session = msg.data.header?.session ?? "";
       const data: Message = JSON.parse(msg.data)
       console.debug(data.channel + '==>' + data.msg_type)
       console.debug(data)
+      //hooks iopub and shell messages and by message typ send to the right observable
       switch (data.channel) {
         case "iopub": {
-
-
+          //there are more events in iopub this doesn't handle
+          //https://jupyter-client.readthedocs.io/en/latest/messaging.html#messages-on-the-iopub-pub-sub-channel
           switch (data.header.msg_type) {
             case "stream": {
               this.stream.next(data);
               break;
             }
             case "status": {
-                this.status.next(data);
-                break;
-              }
-              case "error": {
-                this.error.next(data);
-                break;
-              }
-              case "execute_reply": {
-                this.result.next(data);
-                break;
-              }
-              case "execute_result": {
-                this.result.next(data);
-                break;
-              }
-              case "execute_input": {
-                this.input.next(data);
-                break;
-              }
+              this.status.next(data);
               break;
             }
+            case "error": {
+              this.error.next(data);
+              break;
+            }
+            case "execute_reply": {
+              this.result.next(data);
+              break;
+            }
+            case "execute_result": {
+              this.result.next(data);
+              break;
+            }
+            case "execute_input": {
+              this.input.next(data);
+              break;
+            }
+
+          }
             break;
           }
           case "shell":{
@@ -228,7 +217,7 @@ export class Jupyter {
 
   }
 
-
+  //takes a cell with our metadata standard and creates code for it
   makeCode(cell: cell): string[] {
 
     let code: string[] = []
@@ -250,14 +239,14 @@ export class Jupyter {
       code.push(`${cell.metadata.name}(${params})`)
     }
 
-
     cell.source = [...code]
 
     return code;
   }
 
+  //pass a cell in and execute it
+  //this will automatically do a print on the result value of the cell.
   executeCell(cell: cell) {
-
     this.currentCell = cell;
     const code = this.makeCode(cell).join('\n');
     console.debug(code)
@@ -271,7 +260,7 @@ export class Jupyter {
     })
   }
 
-
+  //lists all the outputs for a cell per metadata standard
   listOutPuts(notebook: JupyterNotebook): string[] {
     let outputs: string[] = [];
     notebook.cells.forEach((cell: cell) => {
@@ -287,6 +276,7 @@ export class Jupyter {
 
   }
 
+  //executes the whole notebook from top to bottom
   executeNotebook(notebook: JupyterNotebook, lastCell: cell = null) {
     //if lastCell is null then process whole notebook
     //otherwise calculate upto and including this cell
@@ -299,6 +289,8 @@ export class Jupyter {
 
   }
 
+  //run python code string against
+  //its best to define the messageid as some guid on the calling function..its like a claim check to get the answer back
   run(code: string, msgid = uuidv4()): string {
     let msg: Message = new Message();
     let exec: execute_request = new execute_request();
@@ -308,7 +300,7 @@ export class Jupyter {
     msg.channel = "shell";
     msg.header.channel = "shell";
     msg.header.msg_type = "execute_request";
-       msg.header.msg_id =msgid;
+    msg.header.msg_id = msgid;
        msg.header.session = this.session ;
 
        this.ws?.send(JSON.stringify(msg));
@@ -328,6 +320,7 @@ export class Jupyter {
     })
   }
 
+  //---------- API generics below
   async post<T>(body:object,url:string){
 //do this to create a kernel on each instance of ui
     let request:RequestInit = {
@@ -373,4 +366,6 @@ export class Jupyter {
     let response =  await fetch(url,request);
     return await response.json();
   }
+
+  //---------- API generics above
 }
