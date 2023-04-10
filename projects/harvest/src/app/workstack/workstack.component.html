@@ -1,0 +1,65 @@
+<div class="container-fluid">
+  <div aria-labelledby="offcanvasLabel" class="offcanvas offcanvas-start {{showFile}}" id="offcanvas" tabindex="-1">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title" id="offcanvasLabel">Offcanvas</h5>
+      <button (click)="showNotebook()" aria-label="Close" class="btn-close" data-bs-dismiss="offcanvas"
+              type="button"></button>
+    </div>
+    <div class="offcanvas-body">
+      <textarea [value]="jupFileText" style="height: 100vh; width: 100%"></textarea>
+    </div>
+  </div>
+  <div class="row">
+
+    <div class="col-sm">
+      <div class="list-group-horizontal-md">
+
+        <div class="list-inline-item">
+          connection:{{connection_status}}
+        </div>
+        <div class="list-inline-item">
+          session:{{session_status}}
+        </div>
+        <button (click)="showNotebook()" aria-controls="offcanvasExample" class="btn btn-success"
+                data-bs-target="#offcanvasExample" data-bs-toggle="offcanvas">
+
+          <i class="bi bi-book"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-2">
+      <div class="accordion" id="accordionExample">
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button aria-controls="collapseOne" aria-expanded="true" class="accordion-button" data-bs-target="#collapseOne"
+                    data-bs-toggle="collapse" type="button">
+              Math Functions
+            </button>
+          </h2>
+          <div class="accordion-collapse collapse show" data-bs-parent="#accordionExample" id="collapseOne">
+            <div class="accordion-body">
+              <ul class="list-group">
+                <li *ngFor="let cell of functions" class="list-group-item">{{cell.metadata.name}}
+                  <button (click)="addCell(cell)" class="btn btn-secondary float-end">
+                    <i class="bi bi-{{cell.metadata.icon}}"></i>
+                  </button>
+                </li>
+
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="col-10">
+      <ul *ngFor="let code_cell of jupFile.cells" class="list-group">
+        <li *ngIf="code_cell.metadata.type =='cell'" class="list-group-item">
+          <app-cell-properties [cell]="code_cell"/>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
