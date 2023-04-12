@@ -124,6 +124,8 @@ export class Jupyter {
     this.$stream.subscribe((result: Message) => this.findResults(result))
     //result socket hooks
     this.$result.subscribe((result: Message) => this.findResults(result))
+    //listen for errors
+
   }
 
   async deleteSession() {
@@ -321,6 +323,7 @@ export class Jupyter {
     })
   }
 
+
   //---------- API generics below
   async post<T>(body:object,url:string){
 //do this to create a kernel on each instance of ui
@@ -369,4 +372,5 @@ export class Jupyter {
   }
 
   //---------- API generics above
+
 }

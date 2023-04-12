@@ -19,6 +19,10 @@ export class WorkstackComponent implements OnInit {
 
   constructor(public jup: Jupyter, private sanitizer: DomSanitizer) {
 
+    jup.$error.subscribe(Message => {
+      console.error(Message);
+      alert(Message.content.evalue)
+    })
 
   }
 
@@ -74,6 +78,10 @@ export class WorkstackComponent implements OnInit {
       })
 
     }
+  }
+
+  showToast(msg: string) {
+
   }
 
   showNotebook() {
