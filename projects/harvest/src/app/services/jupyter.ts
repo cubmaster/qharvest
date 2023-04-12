@@ -4,9 +4,16 @@ import {Injectable} from '@angular/core';
 import {v4 as uuidv4} from 'uuid';
 import {Websocket, WebsocketBuilder, WebsocketEvents} from 'websocket-ts';
 
-export class Kernel{
-  id:string=""
-  name:string="python3"
+export class Kernel {
+  id: string = ""
+  name: string = "python3"
+  env: object
+
+  constructor() {
+    this.env = {
+      KERNEL_USERNAME: ""
+    }
+  }
 }
 
 
@@ -83,25 +90,38 @@ export class execute_request {
 
 'store_history' :  boolean = false;
 
-'user_expressions' : any[]=[];
+  'user_expressions': any[] = [];
 
-'allow_stdin' : boolean = false;
+  'allow_stdin': boolean = false;
 
 
-'stop_on_error' : boolean = true;
+  'stop_on_error': boolean = true;
 }
 
 
+interface IProcessor {
+  connect(),
+
+  disconnect(),
+
+  makeCode(cell: object),
+
+  executeCell(cell: object),
+
+  run(code: string, id: string): string
+
+}
+
 @Injectable()
-export class Jupyter {
+export class Jupyter implements IProcessor {
 
-   status: Subject<Message> = new Subject();
-   stream: Subject<Message> = new Subject();
-   error: Subject<Message> = new Subject();
-   input: Subject<Message> = new Subject();
-   result: Subject <Message> = new Subject();
+  status: Subject<Message> = new Subject();
+  stream: Subject<Message> = new Subject();
+  error: Subject<Message> = new Subject();
+  input: Subject<Message> = new Subject();
+  result: Subject<Message> = new Subject();
 
-  private initalize: BehaviorSubject <boolean> = new BehaviorSubject(false);
+  private initalize: BehaviorSubject<boolean> = new BehaviorSubject(false);
   private connectionstatus: BehaviorSubject<string> = new BehaviorSubject<string>("");
   $status = this.status.asObservable();
   $stream= this.stream.asObservable();
@@ -137,8 +157,10 @@ export class Jupyter {
   }
   async connect() {
     let k = new Kernel();
-    k.name = "python_kubernetes"     //controls the type of kernel. There is an api to get a list of what is available
+    k.name = environment.kernel    //controls the type of kernel. There is an api to get a list of what is available
+    k.env["KERNEL_USERNAME"] = 'wmcclellan001'
     //starts a new kernel
+    //move this to an internal API
     this.kernel = await this.post<Kernel>(k, environment.gatewayUrl + 'api/kernels')
     //connects to the kernel we just started
     this.ws = new WebsocketBuilder(environment.gatewayWsUrl + 'api/kernels/' + this.kernel.id + '/channels').build();

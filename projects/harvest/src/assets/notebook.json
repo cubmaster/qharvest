@@ -161,8 +161,8 @@
     },
     {
       "source": [
-        "def download(url):\n",
-        "  df = pd.read_csv(url)\n",
+        "def download(url,sep):\n",
+        "  df = pd.read_csv(url,sep=sep)\n",
         "  return df\n",
         "  \n"
       ],
@@ -183,6 +183,11 @@
           {
             "key": "url",
             "value": "'https://data.cityofnewyork.us/api/views/kku6-nxdu/rows.csv?accessType=DOWNLOAD'",
+            "type": "text"
+          },
+          {
+            "key": "sep",
+            "value": "','",
             "type": "text"
           }
         ]

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: enterprise-gateway
-  namespace: enterprise-gateway
+  namespace: { { .Values.namespace | quote } }
   labels:
     gateway-selector: enterprise-gateway
     app: enterprise-gateway
@@ -13,6 +13,8 @@ spec:
   selector:
     matchLabels:
       gateway-selector: enterprise-gateway
+      app: enterprise-gateway
+      component: enterprise-gateway
   template:
     metadata:
       labels:
@@ -22,13 +24,18 @@ spec:
     spec:
       # Created above.
       serviceAccountName: enterprise-gateway-sa
+      volumes:
+        - name: dockersock
+          hostPath:
+            path: /var/run/docker.sock
       containers:
         - env:
+
             - name: EG_REMOVE_CONTAINER
               value: 'False'
               # Created above.
             - name: EG_NAMESPACE
-              value: "enterprise-gateway"
+              value: { { .Values.namespace | quote } }
 
               # Created above.  Used if no KERNEL_NAMESPACE is provided by client.
             - name: EG_KERNEL_CLUSTER_ROLE

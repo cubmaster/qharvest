@@ -1,0 +1,44 @@
+version: "3.7"
+
+volumes:
+  localvolume:
+    name: "localvolume"
+    driver: "local"
+
+networks:
+  dev_network:
+    driver: bridge
+
+services:
+  nginx:
+    build:
+      dockerfile: GatewayProxy.dockerfile
+    image: jupyter/kernel-gateway-nginx
+    ports:
+      - "8080:80" # for testing proxied access to the kernel gateway from outside docker
+    depends_on:
+      - kernel_gateway
+
+  kernel_gateway:
+    build:
+      dockerfile: JupyterGateway.dockerfile
+    ports:
+      - "8888:8888" # for testing direct access to the kernel gateway from outside docker
+    image: jupyter/kernel-gateway
+    environment:
+      KG_ALLOW_ORIGIN: '*'
+      KG_ALLOW_METHODS: '*'
+      KG_ALLOW_HEADERS: '*'
+      KG_ALLOW_CREDENTIALS: 'true'
+      KG_IP: '0.0.0.0'
+      KG_PORT: 8888
+      KG_EXPOSE_HEADERS: ''
+      KG_LIST_KERNELS: 'true'
+
+    volumes:
+      - localvolume:/data/db
+    networks:
+      - dev_network
+
+
+
