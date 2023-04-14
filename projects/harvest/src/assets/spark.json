@@ -10,13 +10,9 @@
       },
       "outputs": [],
       "source": [
-        "import pandas as pd\n",
-        "import json\n",
-        "pd.set_option('display.max_rows', None)\n",
-        "pd.set_option('display.max_columns', None)\n",
-        "pd.set_option('display.width', 2000)\n",
-        "pd.set_option('display.float_format', '{:20,.2f}'.format)\n",
-        "pd.set_option('display.max_colwidth', None)\n",
+        "from pyspark.sql import SparkSession\n",
+        "spark = SparkSession.builder.appName('HelloWorld').master('local').getOrCreate()\n",
+        "spark.stop()\n",
         "\n"
       ]
     },
@@ -161,8 +157,8 @@
     },
     {
       "source": [
-        "def download(url,delimiter):\n",
-        "  df = pd.read_csv(url,sep=delimiter)\n",
+        "def download(url,sep):\n",
+        "  df = pd.read_csv(url,sep=sep)\n",
         "  return df\n",
         "  \n"
       ],
@@ -186,7 +182,7 @@
             "type": "text"
           },
           {
-            "key": "delimiter",
+            "key": "sep",
             "value": "','",
             "type": "text"
           }

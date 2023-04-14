@@ -34,6 +34,7 @@ services:
       KG_PORT: 8888
       KG_EXPOSE_HEADERS: ''
       KG_LIST_KERNELS: 'true'
+      EG_AUTH_TOKEN: 'xyz'
 
     volumes:
       - localvolume:/data/db

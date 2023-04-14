@@ -9,5 +9,5 @@ RUN pip install --no-cache-dir jupyter_kernel_gateway
 
 # run kernel gateway on container start, not notebook server
 EXPOSE 8888
-CMD ["jupyter", "kernelgateway", "--KernelGatewayApp.log_level=DEBUG", "--KernelGatewayApp.ip=0.0.0.0", "--KernelGatewayApp.port=8888", "--KernelGatewayApp.allow_origin='*'", "--KernelGatewayApp.allow_methods='*'", "--KernelGatewayApp.allow_credentials='true'", "--KernelGateway.allow_headers='*'", "--KernelGatewayApp.expose_headers='*'", "--KernelGatewayApp.answer_yes=True" ]
+CMD ["jupyter", "kernelgateway","--EnterpriseGatewayApp.auth_token=xyz", "--KernelGatewayApp.log_level=DEBUG", "--KernelGatewayApp.ip=0.0.0.0", "--KernelGatewayApp.port=8888", "--KernelGatewayApp.allow_origin='*'", "--KernelGatewayApp.allow_methods='*'", "--KernelGatewayApp.allow_credentials='true'", "--KernelGateway.allow_headers='*'", "--KernelGatewayApp.expose_headers='*'", "--KernelGatewayApp.answer_yes=True" ]
 #

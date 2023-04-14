@@ -149,21 +149,21 @@ export class Jupyter implements IProcessor {
   }
 
   async deleteSession() {
-    await this.delete<void>(environment.gatewayUrl + 'api/sessions/' + this.session)
+    await this.delete<void>(environment.gatewayUrl + 'api/sessions/' + this.session + '?token=xyz')
   }
 
   async disconnect() {
-   await this.delete<Kernel>(environment.gatewayUrl + 'api/kernels/' + this.kernel.id)
+    await this.delete<Kernel>(environment.gatewayUrl + 'api/kernels/' + this.kernel.id + '?token=xyz')
   }
   async connect() {
     let k = new Kernel();
     k.name = environment.kernel    //controls the type of kernel. There is an api to get a list of what is available
-    k.env["KERNEL_USERNAME"] = 'wmcclellan001'
+    //k.env["KERNEL_USERNAME"] = 'wmcclellan001'
     //starts a new kernel
     //move this to an internal API
-    this.kernel = await this.post<Kernel>(k, environment.gatewayUrl + 'api/kernels')
+    this.kernel = await this.post<Kernel>(k, environment.gatewayUrl + 'api/kernels?token=xyz')
     //connects to the kernel we just started
-    this.ws = new WebsocketBuilder(environment.gatewayWsUrl + 'api/kernels/' + this.kernel.id + '/channels').build();
+    this.ws = new WebsocketBuilder(environment.gatewayWsUrl + 'api/kernels/' + this.kernel.id + '/channels?token=xyz').build();
     this.ws.addEventListener(WebsocketEvents.open, (sub, event) => {
       this.connectionstatus.next("Open");
       let msg = new Message()

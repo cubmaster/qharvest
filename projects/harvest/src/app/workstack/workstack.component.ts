@@ -1,4 +1,4 @@
-import {Component, HostListener, OnInit} from '@angular/core';
+import {Component, HostListener, OnDestroy, OnInit} from '@angular/core';
 import {cell, Jupyter, JupyterNotebook} from "../services/jupyter";
 import {DomSanitizer} from "@angular/platform-browser";
 import * as notebook from "../../assets/notebook.json";
@@ -8,7 +8,7 @@ import * as notebook from "../../assets/notebook.json";
   templateUrl: './workstack.component.html',
   styleUrls: ['./workstack.component.scss']
 })
-export class WorkstackComponent implements OnInit {
+export class WorkstackComponent implements OnInit, OnDestroy {
   public connection_status: string = 'Closed'
   public session_status: string = 'Please Wait...'
   jupFileText: string = "";
@@ -80,10 +80,6 @@ export class WorkstackComponent implements OnInit {
     }
   }
 
-  showToast(msg: string) {
-
-  }
-
   showNotebook() {
 
     this.jupFileText = JSON.stringify(this.jupFile, null, 4);
@@ -107,9 +103,10 @@ export class WorkstackComponent implements OnInit {
 
   private killConnection() {
     this.jup.deleteSession().then(() => {
-
+      console.log('delete')
     });
     this.jup.disconnect().then(() => {
+      console.log('disconnect')
     });
 
   }

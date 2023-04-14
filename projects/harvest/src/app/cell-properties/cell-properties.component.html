@@ -15,8 +15,10 @@
 </nav>
 <div class="row">
   <div class="mb-3">
-    <label class="form-label" for="formID">Name:</label>
-    <input [(ngModel)]="cell.id" [ngModelOptions]="{standalone: true}" class="form-control" id="formID" type="text">
+    <div class="form-floating mb-3">
+      <input [(ngModel)]="cell.id" [ngModelOptions]="{standalone: true}" class="form-control" id="formID" type="text">
+      <label class="form-label" for="formID">Name:</label>
+    </div>
   </div>
 </div>
 <div class="row">
@@ -25,12 +27,15 @@
     <div class="mb-3">
 
       <div *ngFor="let input of cell.metadata.inputs" class="input-group mb-3">
+        <div class="form-floating mb-3">
+           <textarea *ngIf="input.type=='textarea'" [(ngModel)]="input.value"
+                     [name]="cell.id + input.key" class="form-control" style="width: 100%"></textarea>
+          <input *ngIf="input.type!='textarea'"
+                 [(ngModel)]="input.value" [name]="cell.id + input.key" [type]="input.type" class="form-control"
+          />
+          <label for="floatingInput">{{input.key}}</label>
+        </div>
 
-          <textarea *ngIf="input.type=='textarea'"
-                    [(ngModel)]="input.value" [name]="cell.id + input.key" style="width: 100%"></textarea>
-        <input *ngIf="input.type!='textarea'"
-               [(ngModel)]="input.value" [name]="cell.id + input.key" [type]="input.type" class="form-control"
-        />
 
         <ul class="dropdown-menu dropdown-menu-end">
           <li *ngFor="let output of outputs">{{output}}</li>
