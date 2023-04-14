@@ -17,6 +17,7 @@
         "pd.set_option('display.width', 2000)\n",
         "pd.set_option('display.float_format', '{:20,.2f}'.format)\n",
         "pd.set_option('display.max_colwidth', None)\n",
+        "pd.set_option('display.max_colwidth', None)\n",
         "\n"
       ]
     },
@@ -146,12 +147,12 @@
           {
             "key": "df1",
             "value": "",
-            "type": "textarea"
+            "type": "dataframe"
           },
           {
             "key": "df2",
             "value": "",
-            "type": "textarea"
+            "type": "dataframe"
           }
         ]
       },

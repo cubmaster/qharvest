@@ -1,5 +1,5 @@
 import {environment} from '../../environments/environment';
-import {BehaviorSubject, Subject} from "rxjs";
+import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {Injectable} from '@angular/core';
 import {v4 as uuidv4} from 'uuid';
 import {Websocket, WebsocketBuilder, WebsocketEvents} from 'websocket-ts';
@@ -120,6 +120,7 @@ export class Jupyter implements IProcessor {
   error: Subject<Message> = new Subject();
   input: Subject<Message> = new Subject();
   result: Subject<Message> = new Subject();
+  adhoc: Subject<any> = new Subject<any>();
 
   private initalize: BehaviorSubject<boolean> = new BehaviorSubject(false);
   private connectionstatus: BehaviorSubject<string> = new BehaviorSubject<string>("");
@@ -158,7 +159,7 @@ export class Jupyter implements IProcessor {
   async connect() {
     let k = new Kernel();
     k.name = environment.kernel    //controls the type of kernel. There is an api to get a list of what is available
-    //k.env["KERNEL_USERNAME"] = 'wmcclellan001'
+
     //starts a new kernel
     //move this to an internal API
     this.kernel = await this.post<Kernel>(k, environment.gatewayUrl + 'api/kernels?token=xyz')
@@ -326,23 +327,33 @@ export class Jupyter implements IProcessor {
     msg.header.channel = "shell";
     msg.header.msg_type = "execute_request";
     msg.header.msg_id = msgid;
-       msg.header.session = this.session ;
+    msg.header.session = this.session;
 
-       this.ws?.send(JSON.stringify(msg));
+    this.ws?.send(JSON.stringify(msg));
 
-      return msgid;
+    return msgid;
 
   }
 
+  runAdHocCode(code): Observable<any> {
+    this.run(code, "ad_hoc")
+    return this.adhoc.asObservable()
+  }
+
   private findResults(msg: Message) {
-    if (!this.currentCell) {
-      throw Error("No Cell being processed")
-    }
-    this.currentCell.metadata.results.forEach((resultVar) => {
-      if (msg.parent_header.msg_id === resultVar.resultId) {
-        resultVar.value = msg.content.text;
+    if (msg.parent_header.msg_id == "ad_hoc") {
+      this.adhoc.next(msg.content.data);
+    } else {
+      if (!this.currentCell) {
+        throw Error("No Cell being processed")
       }
-    })
+      this.currentCell.metadata.results.forEach((resultVar) => {
+        if (msg.parent_header.msg_id === resultVar.resultId) {
+          resultVar.value = msg.content.text;
+        }
+      })
+    }
+
   }
 
 

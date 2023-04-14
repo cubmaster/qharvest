@@ -1,37 +1,65 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {cell, Jupyter} from "../services/jupyter";
+import {Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild} from '@angular/core';
+import {cell, cellVariable, Jupyter, JupyterNotebook} from "../services/jupyter";
+import {DomSanitizer} from "@angular/platform-browser";
 
 @Component({
   selector: 'app-cell-properties',
   templateUrl: './cell-properties.component.html',
   styleUrls: ['./cell-properties.component.scss'],
 })
-export class CellPropertiesComponent implements OnInit {
+export class CellPropertiesComponent implements OnInit, OnChanges {
   @Input() cell: cell;
-  // @Input() notebook: JupyterNotebook=new JupyterNotebook();
-  inputKeys: string[] = []
-  resultKeys: string[] = []
-  outputs: string[] = [];
-  last_msg: string = ""
+  @Input() notebook: JupyterNotebook = new JupyterNotebook();
+  @ViewChild('dataframeview') cellModal: any;
 
-  constructor(private jup: Jupyter) {
+  priorDataFrames: string[] = []
+  selectedResult: cellVariable;
+  viewValue: any;
+  tags: string[] = [];
 
-
+  constructor(private jup: Jupyter, private sanitizer: DomSanitizer) {
   }
 
   ngOnInit() {
 
+
   }
 
-//  ngOnChanges(changes: SimpleChanges) {
-//     // if (changes["notebook"]){
-//     //   this.notebook = Object.assign(changes["notebook"].currentValue)
-//     // }
-//     // this.outputs= this.jup.listOutPuts(this.notebook);
-//  }
+  ngOnChanges(changes: SimpleChanges) {
+    let nb: any = changes["notebook"].currentValue;
+    nb.cells.forEach((cell: cell) => {
+      if (cell.metadata.type == 'cell') {
+        cell.metadata.results.forEach((result: cellVariable) => {
+          if (result.type == 'dataframe') {
+            this.priorDataFrames.push(cell.id + '_' + result.key)
+          }
+
+        })
+      }
+
+    })
+
+  }
+
 
   execute() {
     this.jup.executeCell(this.cell);
   }
 
+
+  view(output: cellVariable) {
+    this.selectedResult = output;
+    if (output.type == 'dataframe') {
+      this.jup.runAdHocCode(this.cell.id + '_' + output.key + '.to_html()').subscribe((value) => {
+        const val = value['text/plain'].replaceAll('\\n', '').replaceAll('\"', '"').replaceAll("'", "")
+        console.log(val);
+        this.viewValue = val;
+      })
+    } else {
+      this.viewValue = output.value;
+    }
+
+    //this.cellModal.show()
+
+  }
 }
