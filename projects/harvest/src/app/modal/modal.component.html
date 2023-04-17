@@ -1,7 +1,7 @@
 <div class="thisModal">
 
   <div #thisModal aria-labelledby="myModalLabel" class="modal fade" role="dialog" tabindex="-1">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-xl" role="document">
       <div class="modal-content">
         <div appDraggable class="modal-header">
           <h4 class="modal-title" id="myModalLabel">{{ title }}</h4>
@@ -11,7 +11,7 @@
           <ng-content></ng-content>
         </div>
         <div class="modal-footer">
-          <button (click)="close()" class="btn btn-default" data-dismiss="modal" type="button">Close</button>
+          <button (click)="close()" class="btn btn-secondary" data-dismiss="modal" type="button">Close</button>
         </div>
       </div>
     </div>

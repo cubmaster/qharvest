@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {Jupyter} from "../services/jupyter";
+import {Jupyter, Message} from "../services/jupyter";
 
 @Component({
   selector: 'app-column-selector',
@@ -22,8 +22,8 @@ export class ColumnSelectorComponent {
   getColumns(event: Event) {
 
     if (!this.dataFrameOnly) {
-      this.jup.runAdHocCode('list(' + event.target["value"] + '.columns)').subscribe((result) => {
-        this.columns = result["text/plain"].replaceAll('[', '')
+      this.jup.run('list(' + event.target["value"] + '.columns)').subscribe((msg: Message) => {
+        this.columns = msg.content.data["text/plain"].replaceAll('[', '')
           .replaceAll(']', '')
           .replaceAll("'", '').split(',\n')
       })

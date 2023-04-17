@@ -1,5 +1,5 @@
 import {environment} from '../../environments/environment';
-import {BehaviorSubject, Observable, Subject} from "rxjs";
+import {BehaviorSubject, filter, merge, Observable, Subject} from "rxjs";
 import {Injectable} from '@angular/core';
 import {v4 as uuidv4} from 'uuid';
 import {Websocket, WebsocketBuilder, WebsocketEvents} from 'websocket-ts';
@@ -108,7 +108,7 @@ interface IDataFlowProcessor {
 
   executeCell(cell: object),
 
-  run(code: string, id: string): string
+  run(code: string, id: string): Observable<any>
 
 }
 
@@ -142,9 +142,9 @@ export class Jupyter implements IDataFlowProcessor {
     this.ws = undefined;
     //https://jupyter-client.readthedocs.io/en/latest/messaging.html
     //Stream socket hooks execute_reply messages
-    this.$stream.subscribe((result: Message) => this.findResults(result))
+    //this.$stream.subscribe((result: Message) => this.findResults(result))
     //result socket hooks
-    this.$result.subscribe((result: Message) => this.findResults(result))
+    //this.$result.subscribe((result: Message) => this.findResults(result))
     //listen for errors
 
   }
@@ -275,15 +275,10 @@ export class Jupyter implements IDataFlowProcessor {
   executeCell(cell: cell) {
     this.currentCell = cell;
     const code = this.makeCode(cell).join('\n');
-    console.debug(code)
-    this.run(code)
-    //this secondary execute gets the results back and puts them in the metadata for the cell
-    this.currentCell.metadata.results.forEach((result) => {
-      const result_code = `print (${cell.id}_${result.key})`
-      result.resultId = uuidv4();
-      console.log(result_code);
-      this.run(result_code, result.resultId);
+    this.run(code).subscribe((msg: Message) => {
+
     })
+
   }
 
   //lists all the outputs for a cell per metadata standard
@@ -317,44 +312,24 @@ export class Jupyter implements IDataFlowProcessor {
 
   //run python code string against
   //its best to define the messageid as some guid on the calling function..its like a claim check to get the answer back
-  run(code: string, msgid = uuidv4()): string {
+  run(code: string, msgid = uuidv4()): Observable<any> {
     let msg: Message = new Message();
     let exec: execute_request = new execute_request();
     exec.code = code;
-
+    console.debug(code);
     msg.content = exec;
     msg.channel = "shell";
     msg.header.channel = "shell";
     msg.header.msg_type = "execute_request";
     msg.header.msg_id = msgid;
     msg.header.session = this.session;
-
+    const result = merge(this.$result, this.$stream).pipe(filter(msg => msg.parent_header.msg_id === msgid))
     this.ws?.send(JSON.stringify(msg));
-
-    return msgid;
-
+    return result;
   }
 
-  runAdHocCode(code): Observable<any> {
-    this.run(code, "ad_hoc")
-    return this.adhoc.asObservable()
-  }
 
-  private findResults(msg: Message) {
-    if (msg.parent_header.msg_id == "ad_hoc") {
-      this.adhoc.next(msg.content.data);
-    } else {
-      if (!this.currentCell) {
-        throw Error("No Cell being processed")
-      }
-      this.currentCell.metadata.results.forEach((resultVar) => {
-        if (msg.parent_header.msg_id === resultVar.resultId) {
-          resultVar.value = msg.content.text;
-        }
-      })
-    }
 
-  }
 
 
   //---------- API generics below

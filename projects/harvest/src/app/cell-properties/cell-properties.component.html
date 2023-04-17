@@ -56,7 +56,7 @@
     <h5>Outputs</h5>
     <div aria-label="Vertical button group" class="btn-group-vertical" role="group">
       <button (click)="view(result)" *ngFor="let result of cell.metadata.results"
-              class="btn btn-primary" data-bs-target="#dataframeview" data-bs-toggle="modal"
+              class="btn btn-primary"
               type="button">{{result.key}}</button>
 
     </div>
@@ -64,26 +64,13 @@
   </div>
 
 </div>
-<div aria-hidden="true" aria-labelledby="staticBackdropLabel" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false"
-     id="dataframeview" tabindex="-1">
-
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">{{selectedResult?.key}}</h5>
-        <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
-      </div>
-      <div class="modal-body">
-        <div *ngIf="selectedResult?.type==='dataframe'">
-          <div [innerHTML]="viewValue" class="datatable"></div>
-        </div>
-
-        <div *ngIf="selectedResult?.type!=='dataframe'">{{viewValue}}</div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
-
-      </div>
+<app-modal #cellModal [icon]="cell.metadata.icon" [title]="cell.id">
+  <div class="modal-body">
+    <div *ngIf="selectedResult?.type==='dataframe'">
+      <div [innerHTML]="viewValue" class="datatable"></div>
     </div>
+
+    <div *ngIf="selectedResult?.type!=='dataframe'">{{viewValue}}</div>
   </div>
-</div>
+
+</app-modal>

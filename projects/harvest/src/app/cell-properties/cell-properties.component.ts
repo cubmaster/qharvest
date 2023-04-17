@@ -1,6 +1,7 @@
 import {Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild} from '@angular/core';
 import {cell, cellVariable, Jupyter, JupyterNotebook} from "../services/jupyter";
 import {DomSanitizer} from "@angular/platform-browser";
+import {ModalComponent} from "../modal/modal.component";
 
 @Component({
   selector: 'app-cell-properties',
@@ -10,8 +11,9 @@ import {DomSanitizer} from "@angular/platform-browser";
 export class CellPropertiesComponent implements OnInit, OnChanges {
   @Input() cell: cell;
   @Input() notebook: JupyterNotebook = new JupyterNotebook();
-  @ViewChild('dataframeview') cellModal: any;
+  @Input() index: Number;
 
+  @ViewChild('cellModal') cellModal: ModalComponent;
   priorDataFrames: string[] = []
   selectedResult: cellVariable;
   viewValue: any;
@@ -48,15 +50,19 @@ export class CellPropertiesComponent implements OnInit, OnChanges {
 
 
   view(output: cellVariable) {
+    this.cellModal.open()
+    this.viewValue = ""
     this.selectedResult = output;
     if (output.type == 'dataframe') {
-      this.jup.runAdHocCode(this.cell.id + '_' + output.key + '.to_html()').subscribe((value) => {
-        const val = value['text/plain'].replaceAll('\\n', '').replaceAll('\"', '"').replaceAll("'", "")
-        console.log(val);
-        this.viewValue = val;
+      this.jup.run(this.cell.id + '_' + output.key + '.to_html()').subscribe((msg) => {
+
+        const result = msg.content.data["text/plain"]
+        this.viewValue = result.replaceAll('\\n', '').replaceAll('\"', '"').replaceAll("'", "");
       })
     } else {
-      this.viewValue = output.value;
+      this.jup.run('print(' + this.cell.id + '_' + output.key + ')').subscribe((msg) => {
+        this.viewValue = msg.content.text
+      })
     }
 
     //this.cellModal.show()

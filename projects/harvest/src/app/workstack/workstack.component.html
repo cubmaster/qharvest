@@ -55,9 +55,9 @@
       </div>
     </div>
     <div class="col-10">
-      <ul *ngFor="let code_cell of jupFile.cells" class="list-group">
+      <ul *ngFor="let code_cell of jupFile.cells;let ix = index" class="list-group">
         <li *ngIf="code_cell.metadata.type =='cell'" class="list-group-item">
-          <app-cell-properties [cell]="code_cell" [notebook]="jupFile"/>
+          <app-cell-properties [cell]="code_cell" [index]="ix" [notebook]="jupFile"/>
         </li>
       </ul>
     </div>
