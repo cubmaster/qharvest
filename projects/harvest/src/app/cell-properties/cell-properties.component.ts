@@ -62,4 +62,8 @@ export class CellPropertiesComponent implements OnInit, OnChanges {
     //this.cellModal.show()
 
   }
+
+  setValue($event: object, input: cellVariable) {
+    input.value = JSON.stringify($event)
+  }
 }

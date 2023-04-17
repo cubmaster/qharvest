@@ -1,0 +1,8 @@
+<select (change)="getColumns($event)" class="form-control">
+  <option ngValue="">Select From the below...</option>
+  <option *ngFor="let df of dataFrames" ngValue="df">{{df}}</option>
+</select>
+<select (change)="setColumn($event)" class="form-control">
+  <option ngValue="">Select From the below...</option>
+  <option *ngFor="let col of columns" ngValue="col">{{col}}</option>
+</select>

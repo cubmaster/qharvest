@@ -12,6 +12,7 @@ import {ModalComponent} from './modal/modal.component';
 import {DraggableDirective} from './services/draggable.directive';
 import {FormsModule} from "@angular/forms";
 import {WorkstackComponent} from './workstack/workstack.component';
+import {ColumnSelectorComponent} from './column-selector/column-selector.component';
 
 @NgModule({
   declarations: [
@@ -20,7 +21,8 @@ import {WorkstackComponent} from './workstack/workstack.component';
     CellPropertiesComponent,
     ModalComponent,
     DraggableDirective,
-    WorkstackComponent
+    WorkstackComponent,
+    ColumnSelectorComponent
   ],
   imports: [
     BrowserModule,

@@ -23,105 +23,38 @@
     },
     {
       "source": [
-        "def sub(x,y):\n",
-        "    return x-y\n"
+        "def dupcolumn(target):\n",
+        "    dataFrame =  globals()[target['dataFrame']]\n",
+        "    column = target['column']\n",
+        "    new_column = column + '_copy'\n",
+        "    result = dataFrame.assign(**{new_column: dataFrame[column]})\n",
+        "    return result\n",
+        "\n"
       ],
       "outputs": [],
       "metadata": {
         "type": "function",
-        "ui": "subtract",
-        "name": "sub",
-        "icon": "dash-circle",
+        "ui": "duplicate column",
+        "name": "dupcolumn",
+        "icon": "layout-sidebar-inset",
         "results": [
           {
             "key": "result",
             "value": "0",
-            "type": "number"
+            "type": "dataframe"
           }
         ],
         "inputs": [
           {
-            "key": "x",
-            "value": "0",
-            "type": "number"
-          },
-          {
-            "key": "y",
-            "value": "0",
-            "type": "number"
-          }
-        ]
-      },
-      "cell_type": "code",
-      "execution_count": 0,
-      "id": "sub"
-    },
-    {
-      "source": [
-        "def add(x,y):\n",
-        "    return x+y\n"
-      ],
-      "outputs": [],
-      "metadata": {
-        "type": "function",
-        "ui": "add",
-        "name": "add",
-        "icon": "plus-circle",
-        "results": [
-          {
-            "key": "result",
-            "value": "0",
-            "type": "number"
-          }
-        ],
-        "inputs": [
-          {
-            "key": "x",
-            "value": "0",
-            "type": "number"
-          },
-          {
-            "key": "y",
-            "value": "0",
-            "type": "number"
+            "key": "target",
+            "value": "",
+            "type": "column"
           }
         ]
       },
       "cell_type": "code",
       "execution_count": 0,
       "id": "add"
-    },
-    {
-      "source": [
-        "def df_to_json(df):\n",
-        "    df.reset_index(drop=True, inplace=True)\n",
-        "    json_result=df.to_json()\n",
-        "    return json_result\n"
-      ],
-      "outputs": [],
-      "metadata": {
-        "type": "function",
-        "ui": "tojson",
-        "name": "df_to_json",
-        "icon": "eye",
-        "results": [
-          {
-            "key": "result",
-            "value": "",
-            "type": "string"
-          }
-        ],
-        "inputs": [
-          {
-            "key": "df",
-            "value": "",
-            "type": "dataframe"
-          }
-        ]
-      },
-      "cell_type": "code",
-      "execution_count": 0,
-      "id": "df_to_json"
     },
     {
       "source": [

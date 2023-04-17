@@ -28,18 +28,24 @@
 
       <div *ngFor="let input of cell.metadata.inputs" class="input-group mb-3">
 
-        <div class="form-floating mb-3 ">
+        <div *ngIf="input.type!='dataframe' && input.type!='column'" class="form-floating mb-3 ">
            <textarea *ngIf="input.type=='textarea'" [(ngModel)]="input.value"
                      [name]="cell.id + input.key" class="form-control" style="width: 100%"></textarea>
-          <select *ngIf="input.type=='dataframe'" [(ngModel)]="input.value" class="form-control">
-            <option *ngFor="let df of priorDataFrames" ngValue="{{df}}" value="1">{{df}}</option>
-          </select>
+          <!-- <select *ngIf="input.type=='dataframe'" [(ngModel)]="input.value" class="form-control">
+             <option *ngFor="let df of priorDataFrames" ngValue="{{df}}" value="1">{{df}}</option>
+           </select>-->
+
           <input *ngIf="input.type!='textarea' && input.type!= 'dataframe'"
                  [(ngModel)]="input.value" [name]="cell.id + input.key" [type]="input.type" class="form-control"
           />
           <label for="floatingInput">{{input.key}}</label>
         </div>
+        <app-column-selector (onSelection)="setValue($event,input)"
+                             *ngIf="input.type=='dataframe' || input.type=='column'"
+                             [dataFrameOnly]="input.type=='dataframe'"
+                             [dataFrames]="priorDataFrames">
 
+        </app-column-selector>
 
       </div>
 

@@ -94,7 +94,7 @@ export class WorkstackComponent implements OnInit, OnDestroy {
 
     let target: cell = JSON.parse(JSON.stringify(cell));
     target.cell_type = "code";
-    target.id = cell.metadata.ui + (this.jupFile.cells.length + 1);
+    target.id = cell.metadata.name + (this.jupFile.cells.length + 1);
     target.metadata.type = "cell";
     //add it to the jupyter file cells
     this.jupFile.cells.push(target);

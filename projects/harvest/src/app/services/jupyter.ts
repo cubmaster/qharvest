@@ -99,7 +99,7 @@ export class execute_request {
 }
 
 
-interface IProcessor {
+interface IDataFlowProcessor {
   connect(),
 
   disconnect(),
@@ -113,7 +113,7 @@ interface IProcessor {
 }
 
 @Injectable()
-export class Jupyter implements IProcessor {
+export class Jupyter implements IDataFlowProcessor {
 
   status: Subject<Message> = new Subject();
   stream: Subject<Message> = new Subject();

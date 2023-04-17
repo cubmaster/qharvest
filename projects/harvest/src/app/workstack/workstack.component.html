@@ -41,7 +41,7 @@
           <div class="accordion-collapse collapse show" data-bs-parent="#accordionExample" id="collapseOne">
             <div class="accordion-body">
               <ul class="list-group">
-                <li *ngFor="let cell of functions" class="list-group-item">{{cell.metadata.name}}
+                <li *ngFor="let cell of functions" class="list-group-item">{{cell.metadata.ui}}
                   <button (click)="addCell(cell)" class="btn btn-secondary float-end">
                     <i class="bi bi-{{cell.metadata.icon}}"></i>
                   </button>
