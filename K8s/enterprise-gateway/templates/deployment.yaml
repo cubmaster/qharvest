@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: enterprise-gateway
+  namespace: { { .Values.namespace | quote } }
+  labels:
+    gateway-selector: enterprise-gateway
+    app: enterprise-gateway
+    component: enterprise-gateway
+spec:
+  # Uncomment/Update to deploy multiple replicas of EG
+  replicas: 1
+  selector:
+    matchLabels:
+      gateway-selector: enterprise-gateway
+      app: enterprise-gateway
+      component: enterprise-gateway
+  template:
+    metadata:
+      labels:
+        gateway-selector: enterprise-gateway
+        app: enterprise-gateway
+        component: enterprise-gateway
+    spec:
+      # Created above.
+      serviceAccountName: enterprise-gateway-sa
+      volumes:
+        - name: dockersock
+          hostPath:
+            path: /var/run/docker.sock
+      containers:
+        - image: elyra/enterprise-gateway:3.2.0
+          imagePullPolicy: Always
+          name: enterprise-gateway
+          envFrom:
+            - configMapRef:
+                name: gateway-configs
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8888
+
+          #args: ["--gateway"]
+

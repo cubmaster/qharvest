@@ -4,8 +4,8 @@
 
 export const environment = {
   production: false,
-  gatewayUrl: "http://localhost:32544/",
-  gatewayWsUrl: "ws://localhost:32544/",
+  gatewayUrl: "http://aks.39d5f2a8574348f78893.eastus.aksapp.io/gateway/",
+  gatewayWsUrl: "ws://aks.39d5f2a8574348f78893.eastus.aksapp.io/gateway/",
   gatewayPassword: "",
   gatewayUser: "",
   api: "http://localhost:4200/api/",

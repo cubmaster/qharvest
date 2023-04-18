@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kernel-image-puller
+  namespace: { { .Values.namespace | quote } }
+spec:
+  selector:
+    matchLabels:
+      name: kernel-image-puller
+  template:
+    metadata:
+      labels:
+        name: kernel-image-puller
+        app: enterprise-gateway
+        component: kernel-image-puller
+    spec:
+      containers:
+        - name: kernel-image-puller
+          image: elyra/kernel-image-puller:3.2.0
+          env:
+            - name: KIP_GATEWAY_HOST
+              value: http://enterprise-gateway.enterprise-gateway:8888
+
+            - name: KIP_PULL_POLICY
+              value: IfNotPresent
+          volumeMounts:
+            - name: dockersock
+              mountPath: /var/run/docker.sock
+      volumes:
+        - name: dockersock
+          hostPath:
+            path: /var/run/docker.sock
